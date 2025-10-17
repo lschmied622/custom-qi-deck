@@ -69,7 +69,7 @@ bachelor-thesis/
 
 *Vorschau-Bilder:*
 
-<img src="hardware/images/crazyflie2-exp-custom-qi-deck-V4.png" alt="Beschreibung" style="width:49%; height:auto;"/> 
+<img src="hardware/images/crazyflie2-exp-custom-qi-deck-V4.png" alt="Beschreibung" style="width:200px; height:auto;"/> 
 <img src="hardware/images/crazyflie2-exp-custom-qi-deck-V4_back.png" alt="Beschreibung" style="width:49%; height:auto;"/>
 
 ![Bestücktes PCB](hardware/images/Rendering_colored_boxes.drawio.png)
