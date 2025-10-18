@@ -69,12 +69,13 @@ bachelor-thesis/
 
 *Vorschau-Bilder:*
 
-<img src="hardware/images/crazyflie2-exp-custom-qi-deck-V4.png" alt="Beschreibung" style="width:200px; height:auto;"/> 
-<img src="hardware/images/crazyflie2-exp-custom-qi-deck-V4_back.png" alt="Beschreibung" style="width:49%; height:auto;"/>
+<img src="hardware/images/crazyflie2-exp-custom-qi-deck-V4.png" alt="Custom-Qi-Deck-frontsilk" style="width:49%; height:auto;"/> 
+<img src="hardware/images/crazyflie2-exp-custom-qi-deck-V4_back.png" alt="Custom-Qi-Deck-backsilk" style="width:49%; height:auto;"/>
 
 ![Bestücktes PCB](hardware/images/Rendering_colored_boxes.drawio.png)
 ![Montierte_Drohne_mit_Qi_Deck.png](hardware/images/montierte_Drohne_freigestellt.PNG)
 ![Exploded_View_Ladetrichter.png](docs/figures/fusion/Crazyflie%20Qi%20Ladetrichter%20v57.png)
+![Landing_Guide_Funnel.png](docs/figures/fusion/VideoDemomitRotoren.webp)
 ![Qi-Schaltung (Prinzipskizze)](hardware/images/Blockschaltbild.png)
 
 
