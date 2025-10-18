@@ -76,10 +76,8 @@ bachelor-thesis/
 ![Montierte_Drohne_mit_Qi_Deck.png](hardware/images/montierte_Drohne_freigestellt.PNG)
 ![Exploded_View_Ladetrichter.png](docs/figures/fusion/Crazyflie%20Qi%20Ladetrichter%20v57.png)
 ![Landing_Guide_Funnel.png](docs/figures/fusion/VideoDemomitRotoren.webp)
+
 ![Qi-Schaltung (Prinzipskizze)](hardware/images/Blockschaltbild.png)
-
-
-
 
 ---
 
@@ -140,9 +138,22 @@ bachelor-thesis/
 Nach dem Neustart sollte die Crazyflie in der **Konsole** (Crazyflie-Client) ausgeben, dass ein Deck-Memory gefunden wurde und der passende Treiber geladen ist. Suchen Sie nach Mustern wie:
 
 ```
-SYS: Deck OW memory detected
-DECK: found "Custom Qi Deck"
-DECK: loading driver "custom_qi_deck" ... OK
+...
+DECK_CORE: 3 deck(s) found
+DECK_CORE: Calling INIT on driver custom_qi for deck 0
+[CUSTOM_QI] driver initialized
+DECK_CORE: Calling INIT on driver bcMultiranger for deck 1
+[CUSTOM_QI] task started
+DECK_CORE: Calling INIT on driver bcFlow2 for deck 2
+...
+DECK_CORE: Deck 0 test [OK].
+...
+DECK_CORE: Deck 1 test [OK].
+DECK_CORE: Deck 2 test [OK].
+SYS: Self test passed!
+STAB: Wait for sensor calibration...
+SYS: Free heap: 12432 bytes
+STAB: Starting stabilizer loop
 ```
 
 > *Je nach Firmwareversion variieren die Strings leicht; entscheidend ist die Erkennung des Deck-Namens und das Laden des Treibers.* (Hintergrund: Deck-Enumeration via 1-Wire/MEM-Subsystem.) ([Bitcraze][1])
@@ -160,20 +171,32 @@ DECK: loading driver "custom_qi_deck" ... OK
 
 > **Hinweis:** Im Ordner `experiments/flight-tests/` finden Sie Aufzeichnungen zur Wall-Follow-Demo mit dem Custom-Qi-Deck. Diese Demo nutzt den Multi-Ranger-Sensor zur Abstandsmessung und zeigt die Flugstabilität mit dem neuen Deck.
 
-Für die Wall-Follow-Demo wurde ein einfacher PID-Regler implementiert, der die seitlichen Abstände zum Hindernis misst und die Position der Crazyflie entsprechend anpasst. Anschließend landet die Drohne sicher auf der Qi-Ladestation in einer vordefinierten Position.
-Nach einer kurzen Ladephase hebt die Drohne wieder ab und fliegt weiter an der Wand entlang, indem sie zu dem Initialzustand der FSM zurückkehrt. Die folgende Abbildung zeigt den schematischen Ablauf der Wall-Follow-Demo:
+Für die Wall-Follow-Demo wurde ein einfacher PID-Regler implementiert, der die seitlichen Abstände zum Hindernis misst und die Position der Crazyflie entsprechend anpasst. Anschließend landet die Drohne sicher auf der Qi-Ladestation in einer vordefinierten Position. Nach einer kurzen Ladephase hebt die Drohne wieder ab und fliegt weiter an der Wand entlang, indem sie zu dem Initialzustand der FSM zurückkehrt. Die folgende Abbildung zeigt den schematischen Ablauf der Wall-Follow-Demo:
 
 ![Wall-Follow-Demo FSM](docs/figures/System_config.png)
 
 ### 8. Software/Firmware (kurz)
 
 * **STM32/NRF-Firmware:** Quellen unter `software/stm32-firmware/` und `software/nrf-firmware/`.
+  * Flashen der Crazyflie-Firmware (STM32, cf2.bin inkl. Custom-Qi-Treiber)
+    * Manuell in den Bootloader wechseln (falls nötig). Crazyflie AUS → Power-Taste ~3 s drücken bis die blauen LEDs blinken → dann make cload ausführen.
+    * Optional: Über den Crazyflie-Client die Firmware flashen (STM32 + NRF51).
+    * In der NRF-Firmware kann optional die Fast-Charging-Funktionalität aktiviert werden, wenn der Treiber geladen ist und die Hardware durch den Prop-Wash kühlt.
 * **Deck-Treiber:** Ein eigener Treiber wird beim Booten anhand des Deck-Memorys geladen (siehe Doku zur Deck-API/How-To für Deck-Treiber). ([Bitcraze][4])
 * **Python-Skripte:** In `software/python-scripts/` liegen Hilfs- und Validierungs-Skripte (Logging, Wall-Following-Demos etc.).
 
 ---
 
-### 9. Referenzen
+### 9. 3D-Modelle und Mechanik
+
+* **Trichter und Lad-Pad:** die 3D-Modelle für den Ladetrichter und das Qi-Ladepad befinden sich in `mechanics/cad-models/components` (STEP/STL/Fusion).
+* **Makerworld:** Die Modelle sind auch auf [Makerworld](https://makerworld.io/) verfügbar: [Qi Charging Kit](https://makerworld.com/de/models/1899630-crazyflie-charging-funnel#profileId-2035758)
+  * hier finden Sie auch Anleitungen, fertig sliced Modelle zum 3D-Druck und zur Montage.
+* **Qi-Transmitter:** Für den Qi-Sender (Ladestation) wurde ein handelsübliches Modul verwendet (z. B. [Qi Wireless Charger](https://de.aliexpress.com/item/1005007750862678.html)).
+
+---
+
+### 10. Referenzen
 
 * Bitcraze: **Expansion board detection** (1-Wire-Memory, Boot-Ablauf). ([Bitcraze][1])
 * Bitcraze: **Deck memory format** (Aufbau/CRC, Zweck). ([Bitcraze][3])
@@ -187,51 +210,53 @@ Nach einer kurzen Ladephase hebt die Drohne wieder ab und fliegt weiter an der W
 
 ### 1. Project overview & repository layout
 
-This repository contains the full pipeline for a *Custom Qi Charging Deck* for the Crazyflie: electronics (PCB), mechanics (3D-printed parts), firmware and Python tools. Crazyflie 2.x relies on a **1-Wire deck memory** to enumerate installed decks at boot; the correct deck driver is loaded automatically *only if* the deck’s EEPROM is programmed properly. Otherwise the system may refuse to start or the driver will not load. ([Bitcraze][1])
-
-(See the directory tree above for a quick orientation.)
+This repository bundles all artifacts of the bachelor thesis developing a *Custom-Qi-Deck* for the Crazyflie platform, including electronics (PCB), mechanics (3D printing), firmware and scripts. The deck uses the **1-Wire deck identification** of the Crazyflie 2.x so the appropriate driver is automatically loaded during boot. Without a programmed *deck EEPROM/one-wire memory* the drone may abort the boot process or the driver will not be loaded, therefore the following steps to program the EEPROM are mandatory to ensure correct system functionality. ([Bitcraze][1])
 
 ---
 
 ### 2. Prerequisites (quick)
 
-* **Hardware:** Crazyflie 2.x + Crazyradio PA, Flow-deck (optional), Multi-ranger (optional) and *Custom-Qi-Deck* (this project).
-* **Software:** Python 3.10+, `cflib` (Crazyflie Python Library), Crazyflie Client (optional).
-* **Tools:** KiCad, standard PCB assembly tooling.
+* **Hardware:** Crazyflie 2.x + radio (Crazyradio PA), Flow-Deck & Multi-Ranger (optional, depending on experiment), *Custom-Qi-Deck* (this project).
+* **Software:** Python 3.10+, `cflib` (Crazyflie Python Library), Crazyflie Client (optional for console/log view).
+* **Tools:** KiCad (for modifications), common PCB assembly tooling.
 
 ---
 
-### 3. PCB fabrication & assembly
+### 3. PCB ordering and assembly
 
-**3.1 Order the PCB.** Upload the **Gerber**, **BoM** and **Pick-and-Place** files from `hardware/fabrication-files/` to your preferred PCB/assembly vendor.
-**3.2 Bill of Materials.** The BoM lists **all** components required to fully assemble the deck, including the **1-Wire memory** for deck identification.
-**3.3 Short assembly guide.**
+**3.1 Use the fabrication files.** The folder `hardware/fabrication-files/` contains **Gerber data**, the **BoM** (bill of materials) and **pick-and-place** files. These can be uploaded directly to typical PCB manufacturers.
 
-1. **Prep:** Clean PCB; stage components per BoM.
-2. **SMD first:** passives → ICs; pay attention to Qi receiver, rectifier/power path, **1-Wire memory**.
-3. **Headers:** Solder 2×5 connectors exactly orthogonal.
-4. **Mechanics:** Verify fit with printed guides/funnel from `mechanics/cad-models/`.
-5. **Inspection:** Shorts/opens, clean flux residues.
+> *Note:* Crazyflie expansion decks are identified via the 2×5 pin header and a **1-Wire memory chip** which must be populated on the PCB (see section 4). ([Bitcraze][1])
 
-> *Explanation:* At boot, the Crazyflie’s nRF MCU scans all deck **1-Wire memories** and the application initializes drivers accordingly. An empty/invalid deck memory can block startup. ([Bitcraze][1])
+**3.2 BoM (bill of materials).** The BoM contains **all** components required for full assembly, including the 1-Wire memory. Verify package types and solder pads before ordering.
+
+**3.3 Short assembly guide.** (Based on the thesis assembly chapters)
+
+1. **Preparation:** Clean the PCB; stage components according to the BoM.
+2. **SMD first:** solder passives first, then ICs; pay special attention to the Qi receiver, rectifier/power-path, and the **1-Wire memory**.
+3. **Place headers:** Ensure the 2×10 pin headers are soldered exactly orthogonal.
+4. **Mechanics check:** Verify the deck outline and the optionally 3D-printed guide/"charging funnel" from `mechanics/cad-models/` and adapt if needed.
+5. **Inspection & cleaning:** Check for shorts, remove flux residues.
+
+> *The Crazyflie reads all 1-Wire memories of connected decks at startup and initializes their drivers. An empty or invalid deck memory can prevent boot or affect other decks (notably the Flowdeck).* ([Bitcraze][1])
 
 ---
 
-### 4. **Mandatory:** Program the deck EEPROM (1-Wire)
+### 4. **Mandatory:** Program the deck EEPROM/1-Wire memory
 
-**Purpose.** The deck-EEPROM stores identity data (vendor/product/name/version) so the firmware can **verify compatibility** and **auto-load the proper driver** (*deck enumeration*). ([Bitcraze][1])
+**Goal.** The deck EEPROM contains identity data (vendor/product/name/version) that allows the Crazyflie firmware to **verify compatibility** and **auto-load the correct driver** (deck enumeration). ([Bitcraze][1])
 
-**Tools.** Use Bitcraze’s CRTP **memory access** and example scripts (`read-ow.py` / `write-ow.py`) from the Crazyflie Python library to **read/write** the deck’s 1-Wire memory. ([Bitcraze][2])
+**Tools.** Bitcraze provides CRTP-based memory-access functions and example scripts for **reading/writing the 1-Wire memory** (e.g. `read-ow.py` / `write-ow.py` in the Crazyflie Python library). ([Bitcraze][2])
 
-**Procedure.**
+**Recommended procedure:**
 
-1. Power Crazyflie; connect via radio.
-2. Use `write-ow.py` (or your own script) to program the deck memory.
-3. Reboot and verify (see **Validation**).
+1. Power the Crazyflie and connect via radio.
+2. Use the `write-ow.py` script (or your own tool) to write the deck memory.
+3. Reboot and check the console (see **Validation**).
 
-**⚠️ IMPORTANT:** If you skip this step, the Crazyflie may not boot properly and the custom Qi driver will not load. ([Bitcraze][1])
+**⚠️ IMPORTANT:** Without a correctly written EEPROM the boot sequence can fail or the driver will not be loaded. ([Bitcraze][1])
 
-**Placeholder Python snippet (edit your IDs):**
+**Placeholder Python snippet (customize IDs):**
 
 ```python
 # replace method with this data:
@@ -265,36 +290,82 @@ This repository contains the full pipeline for a *Custom Qi Charging Deck* for t
 # TODO: write DECK_INFO to the deck 1-Wire memory using cflib or write-ow.py
 ```
 
-> *For the exact memory layout and checksums, consult the official docs and align with the tooling you use.* ([Bitcraze][3])
+> *Note:* For details about the deck memory format and the memory API consult the official documentation. Align fields and checksums with the tooling you use. ([Bitcraze][3])
 
 ---
 
-### 5. Validation (console/boot logs)
+### 5. Validation (console / boot logs)
 
-After rebooting, check the **console** in the Crazyflie client. You should see that the deck memory was found and the **custom Qi driver** loaded, e.g.:
+After rebooting the Crazyflie, check the **console** in the Crazyflie client. You should see that a deck memory was found and the appropriate driver was loaded. Look for patterns such as:
 
 ```
-SYS: Deck OW memory detected
-DECK: found "Custom Qi Deck"
-DECK: loading driver "custom_qi_deck" ... OK
+...
+DECK_CORE: 3 deck(s) found
+DECK_CORE: Calling INIT on driver custom_qi for deck 0
+[CUSTOM_QI] driver initialized
+DECK_CORE: Calling INIT on driver bcMultiranger for deck 1
+[CUSTOM_QI] task started
+DECK_CORE: Calling INIT on driver bcFlow2 for deck 2
+...
+DECK_CORE: Deck 0 test [OK].
+...
+DECK_CORE: Deck 1 test [OK].
+DECK_CORE: Deck 2 test [OK].
+SYS: Self test passed!
+STAB: Wait for sensor calibration...
+SYS: Free heap: 12432 bytes
+STAB: Starting stabilizer loop
 ```
 
-> *Exact messages vary by firmware; look for deck discovery and driver initialization.* (Background: 1-Wire deck enumeration and MEM subsystem.) ([Bitcraze][1])
+> *Messages vary with firmware versions; the key is that the deck name is detected and the driver is initialized.* ([Bitcraze][1])
 
 ---
 
 ### 6. Safety notice (USB)
 
-> **Do not use USB while the Custom-Qi-Deck is attached and in use.**
-> Using the USB port concurrently can lead to **malfunctions** (power path conflicts).
+> **Warning – do not use USB!**
+> While the **Custom-Qi-Deck is attached and actively used**, the Crazyflie's USB interface must not be used. Concurrent use can lead to **malfunctions** (e.g. in the power-path switching).
 
 ---
 
-### 7. Software/Firmware (short)
+### 7. Wall-Follow demo
 
-* **STM32/NRF firmware:** see `software/stm32-firmware/` and `software/nrf-firmware/`.
-* **Deck driver:** Your custom driver is auto-loaded at boot based on the deck memory (see Deck API / driver how-to). ([Bitcraze][4])
-* **Python scripts:** tooling and validation in `software/python-scripts/`.
+> *Note:* The folder `experiments/flight-tests/` contains recordings for the Wall-Follow demo using the Custom-Qi-Deck. This demo uses the Multi-Ranger sensor for distance measurements and demonstrates flight stability with the new deck.
+
+For the Wall-Follow demo a simple PID controller was implemented that measures lateral distance to an obstacle and adjusts the Crazyflie's position accordingly. Afterwards the drone lands on the Qi charger at a predefined position. After a short charging phase the drone takes off again and resumes flight along the wall by returning to the initial state of the FSM. The figure below shows the schematic sequence of the Wall-Follow demo:
+
+![Wall-Follow-Demo FSM](docs/figures/System_config.png)
+
+---
+
+### 8. Software / Firmware (short)
+
+* **STM32/NRF firmware:** sources in `software/stm32-firmware/` and `software/nrf-firmware/`.
+  * Flashing the Crazyflie firmware (STM32, cf2.bin incl. custom Qi driver)
+  * Enter the bootloader manually (if needed). Crazyflie OFF → hold the power button for ~3 s until the blue LEDs blink → then run make cload.
+  * Optional: Flash the firmware via the Crazyflie Client (STM32 + NRF51).
+  * In the NRF firmware, the fast-charging functionality can optionally be enabled when the driver is loaded and the hardware is cooled by prop wash.
+* **Deck driver:** A dedicated driver is loaded at boot based on the deck EEPROM (see the Deck API / driver how-to). ([Bitcraze][4])
+* **Python scripts:** helper and validation scripts (logging, wall-follow demos etc.) in `software/python-scripts/`.
+
+---
+
+### 9. 3D models and mechanics
+
+* **Funnel and charging pad:** the 3D models for the charging funnel and the Qi charging pad are located in `mechanics/cad-models/components` (STEP / STL / Fusion).
+* **Makerworld:** The models are also available on Makerworld: [Qi Charging Kit](https://makerworld.com/de/models/1899630-crazyflie-charging-funnel#profileId-2035758)
+  * there you can find build instructions, ready-sliced 3D-print files and assembly guides.
+* **Qi transmitter:** A commercially available Qi transmitter module was used for the charging station (e.g. `Qi Wireless Charger` — https://de.aliexpress.com/item/1005007750862678.html).
+
+---
+
+### 10. References
+
+* Bitcraze: **Expansion board detection** (1-Wire-Memory, boot sequence). ([Bitcraze][1])
+* Bitcraze: **Deck memory format** (layout/CRC, purpose). ([Bitcraze][3])
+* Bitcraze: **CRTP memory access** (read/write 1-Wire memories). ([Bitcraze][2])
+* Bitcraze forum: **read-ow.py / write-ow.py** (examples). ([forum.bitcraze.io][5])
+* Bitcraze: **Expansion template (KiCad)** (design starting point). ([GitHub][6])
 
 ---
 
