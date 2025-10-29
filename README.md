@@ -173,7 +173,7 @@ STAB: Starting stabilizer loop
 
 Für die Wall-Follow-Demo wurde ein einfacher PID-Regler implementiert, der die seitlichen Abstände zum Hindernis misst und die Position der Crazyflie entsprechend anpasst. Anschließend landet die Drohne sicher auf der Qi-Ladestation in einer vordefinierten Position. Nach einer kurzen Ladephase hebt die Drohne wieder ab und fliegt weiter an der Wand entlang, indem sie zu dem Initialzustand der FSM zurückkehrt. Die folgende Abbildung zeigt den schematischen Ablauf der Wall-Follow-Demo:
 
-![Wall-Follow-Demo FSM](docs/figures/System_config.png)
+![Wall-Follow-Demo FSM](docs/figures/System_config.jpeg)
 
 ### 8. Software/Firmware (kurz)
 
@@ -334,7 +334,7 @@ STAB: Starting stabilizer loop
 
 For the Wall-Follow demo a simple PID controller was implemented that measures lateral distance to an obstacle and adjusts the Crazyflie's position accordingly. Afterwards the drone lands on the Qi charger at a predefined position. After a short charging phase the drone takes off again and resumes flight along the wall by returning to the initial state of the FSM. The figure below shows the schematic sequence of the Wall-Follow demo:
 
-![Wall-Follow-Demo FSM](docs/figures/System_config.png)
+![Wall-Follow-Demo FSM](docs/figures/System_config.jpeg)
 
 ---
 
